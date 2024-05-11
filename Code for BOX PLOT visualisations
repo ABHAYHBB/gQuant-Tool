@@ -1,0 +1,46 @@
+import plotly.express as px
+import plotly.graph_objects as go
+import pandas as pd
+import numpy as np
+
+## Read the Excel data into a DataFrame
+df = pd.read_excel('endo_2.xlsx',sheet_name='Sheet2')
+
+# Specify the column names to plot
+columns_to_plot = ['Ct Mean (Let-7c-5p)', '16-5p', '30-a', '30-d', '10b-5p']
+
+# Initialize the figure
+fig = go.Figure()
+
+# Add the strip plots
+for i, col in enumerate(columns_to_plot):
+    fig.add_trace(go.Box(y=df[col], name=col, jitter=0.3, pointpos=-1.8, boxpoints='all'))
+
+# Add mean lines
+for i, col in enumerate(columns_to_plot):
+    mean_val = df[col].mean()
+    fig.add_shape(
+        go.layout.Shape(
+            type="line",
+            x0=-0.5 + i,
+            x1=0.5 + i,
+            y0=mean_val,
+            y1=mean_val,
+            yref="y",
+            xref="x",
+            line=dict(color="Red", dash="dashdot")
+        )
+    )
+
+# Additional settings
+# Additional settings, including figure size
+fig.update_layout(
+    title="Strip Plot with Additional Details",
+    xaxis_title="Columns",
+    yaxis_title="Value",
+    width=1300,  # Width in pixels
+    height=600   # Height in pixels
+)
+
+# Show the plot
+fig.show()
