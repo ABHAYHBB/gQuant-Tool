@@ -21,7 +21,7 @@ def kernel_density_function(column_data, bandwidth=1.0):
     log_density = kde.score_samples([[column_data.mean()]])
     return np.exp(log_density)[0]
 
-file_path = 'norm.xlsx'
+file_path = 'File_Name'
 data = pd.read_excel(file_path)
 gene_names = data.columns[1:]
 numerical_data = data.iloc[:, 1:].astype(float)
