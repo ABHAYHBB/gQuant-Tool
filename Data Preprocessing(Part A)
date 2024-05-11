@@ -2,10 +2,7 @@ import pandas as pd
 import numpy as np
 
 # Replace with the actual path to your Excel file
-file_path = 'GEO_with_NA.xlsx'
-
-# Specify the sheet number you want to load, for example, sheet number 2 (Python is zero-indexed)
-sheet_number = 2  # If the sheet is the third sheet in the Excel file
+file_path = 'File_Name'
 
 # Load the data from the specified sheet into a pandas DataFrame without considering the first row as header
 df = pd.read_excel(file_path, sheet_name=sheet_number, header=None)  # Subtracting 1 since Python is zero-indexed
