@@ -1,0 +1,73 @@
+import pandas as pd
+import numpy as np
+from scipy.stats import gmean
+from sklearn.neighbors import KernelDensity
+from sklearn.preprocessing import MinMaxScaler
+from collections import Counter
+
+def standard_deviation(input_data):
+    return np.std(input_data, axis=0)
+
+def geometric_mean(input_data):
+    return gmean(input_data, axis=0)
+
+def covariance(input_data):
+    cov_matrix = np.cov(input_data, rowvar=False)
+    return np.mean(cov_matrix, axis=0)
+
+def kernel_density_function(column_data, bandwidth=1.0):
+    kde = KernelDensity(bandwidth=bandwidth)
+    kde.fit(column_data.values.reshape(-1, 1))
+    log_density = kde.score_samples([[column_data.mean()]])
+    return np.exp(log_density)[0]
+
+file_path = 'norm.xlsx'
+data = pd.read_excel(file_path)
+gene_names = data.columns[1:]
+numerical_data = data.iloc[:, 1:].astype(float)
+remaining_genes = list(gene_names)
+
+ranking_index = []
+ranking_value = 1
+
+def scale_std(input_data):
+    input_data_np = np.array(input_data)
+    scaler = MinMaxScaler()
+    return scaler.fit_transform(input_data_np.reshape(-1, 1)).flatten()
+
+while numerical_data.shape[1] > 1:
+    print(f'Current shape of numerical_data: {numerical_data.shape}')
+
+    std_result = scale_std(standard_deviation(numerical_data))
+    gm_result = geometric_mean(numerical_data)
+    cov_result = covariance(numerical_data)
+    kde_results = [kernel_density_function(numerical_data[column_name]) for column_name in numerical_data.columns]
+
+    min_std_col = remaining_genes[np.argmin(std_result)]
+    min_gm_col = remaining_genes[np.argmin(gm_result)]
+    min_cov_col = remaining_genes[np.argmin(cov_result)]
+    max_kde_col = remaining_genes[np.argmax(kde_results)]
+
+    votes = [min_std_col, min_gm_col, min_cov_col, max_kde_col]
+    votes_count = Counter(votes)
+    max_vote_count = votes_count.most_common(1)[0][1]
+    tied_genes = [gene for gene, count in votes_count.items() if count == max_vote_count]
+
+    if len(tied_genes) > 1:
+        for gene in tied_genes:
+            if gene in numerical_data.columns:
+                ranking_index.append((gene, ranking_value))
+                numerical_data = numerical_data.drop(columns=gene)
+                remaining_genes.remove(gene)
+        ranking_value += 1
+    else:
+        majority_vote_gene = tied_genes[0]
+        if majority_vote_gene in numerical_data.columns:
+            ranking_index.append((majority_vote_gene, ranking_value))
+            numerical_data = numerical_data.drop(columns=majority_vote_gene)
+            remaining_genes.remove(majority_vote_gene)
+        ranking_value += 1
+
+    print(f'Votes: {votes}, Majority Vote: {majority_vote_gene if len(tied_genes) == 1 else "Tie"}, Remaining genes: {len(remaining_genes)}')
+
+print('Ranking index:', ranking_index)
